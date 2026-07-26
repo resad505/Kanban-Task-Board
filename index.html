@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban İdarəetmə</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Ionicons CDN -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="logo-icon">
+                    <ion-icon name="grid-outline"></ion-icon>
+                </div>
+                <h1 class="app-title">Kanban İdarəetmə</h1>
+            </div>
+
+            <div class="header-actions">
+                <!-- Search Box -->
+                <div class="search-box">
+                    <ion-icon name="search-outline" class="search-icon"></ion-icon>
+                    <input type="text" id="searchInput" placeholder="Tapşırıq əsasında axtar...">
+                </div>
+
+                <!-- Priority Filter Dropdown -->
+                <div class="filter-box">
+                    <ion-icon name="funnel-outline" class="filter-icon"></ion-icon>
+                    <select id="priorityFilter">
+                        <option value="all">Bütün prioritetlər</option>
+                        <option value="low">Aşağı</option>
+                        <option value="medium">Orta</option>
+                        <option value="high">Yüksək</option>
+                    </select>
+                </div>
+
+                <!-- New Task Button -->
+                <button id="openModalBtn" class="btn-primary">
+                    <ion-icon name="add-outline"></ion-icon>
+                    <span>Yeni Tapşırıq</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Kanban Board Container -->
+        <main class="kanban-board">
+            <!-- Column 1: Gözləmədə -->
+            <div class="kanban-column" data-status="gozlamada">
+                <div class="column-header">
+                    <div class="column-title-group">
+                        <span class="status-dot dot-pending"></span>
+                        <h2 class="column-title">Gözləmədə</h2>
+                    </div>
+                    <span class="task-count" id="count-gozlamada">0</span>
+                </div>
+                <div class="task-list" id="list-gozlamada"></div>
+            </div>
+
+            <!-- Column 2: İcra olunur -->
+            <div class="kanban-column" data-status="icra_olunur">
+                <div class="column-header">
+                    <div class="column-title-group">
+                        <span class="status-dot dot-in-progress"></span>
+                        <h2 class="column-title">İcra olunur</h2>
+                    </div>
+                    <span class="task-count" id="count-icra_olunur">0</span>
+                </div>
+                <div class="task-list" id="list-icra_olunur"></div>
+            </div>
+
+            <!-- Column 3: Tamamlandı -->
+            <div class="kanban-column" data-status="tamamlandi">
+                <div class="column-header">
+                    <div class="column-title-group">
+                        <span class="status-dot dot-completed"></span>
+                        <h2 class="column-title">Tamamlandı</h2>
+                    </div>
+                    <span class="task-count" id="count-tamamlandi">0</span>
+                </div>
+                <div class="task-list" id="list-tamamlandi"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Dialog (Add / Edit Task) -->
+    <div id="taskModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modalTitle" class="modal-heading">Yeni Tapşırıq</h3>
+                <button type="button" id="closeModalBtn" class="close-btn">
+                    <ion-icon name="close-outline"></ion-icon>
+                </button>
+            </div>
+            <form id="taskForm" class="modal-body">
+                <div class="form-group">
+                    <label for="taskTitleInput" class="form-label">Başlıq <span class="required">*</span></label>
+                    <input type="text" id="taskTitleInput" class="form-input" placeholder="Məs: API inteqrasiyası"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label for="taskDescInput" class="form-label">Açıqlama</label>
+                    <textarea id="taskDescInput" class="form-textarea"
+                        placeholder="Tapşırıq haqqında qısa qeyd..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="taskPriorityInput" class="form-label">Prioritet dərəcəsi</label>
+                    <select id="taskPriorityInput" class="form-select">
+                        <option value="low">Aşağı (Low)</option>
+                        <option value="medium">Orta (Medium)</option>
+                        <option value="high">Yüksək (High)</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="cancelModalBtn" class="btn-secondary">Ləğv et</button>
+                    <button type="submit" class="btn-primary">Yadda saxla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
