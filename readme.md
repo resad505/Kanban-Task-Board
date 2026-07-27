@@ -48,13 +48,55 @@ Bu mərhələdə (Checkpoint-1) Kanban tapşırıq lövhəsinin struktur HTML-i,
 
 ---
 
+# Checkpoint-2: Add / edit / delete task functionality
+
+Bu mərhələdə (Checkpoint-2) tapşırıqların əlavə edilməsi, redaktə olunması və silinməsi funksionallıqları tam şəkildə reallaşdırıldı. Layihənin bütün CSS sinifləri strict **BEM (Block Element Modifier)** metodologiyasına keçirildi.
+
+---
+
+## 🛠️ Checkpoint-2 Nələr Edildi Və Necə Hazırlandı?
+
+### 1. BEM Metodologiyasına Keçid (`styles.css` və `index.html`)
+Bütün CSS strukturu BEM standarta uyğunlaşdırıldı:
+- **Bloklar (Blocks):** `.kanban-app`, `.app-header`, `.search-box`, `.filter-box`, `.btn`, `.kanban-board`, `.kanban-column`, `.task-card`, `.task-modal`, `.form-group`, `.priority-badge`.
+- **Elementlər (Elements):** `.app-header__title`, `.kanban-column__header`, `.task-card__title`, `.task-card__btn`, `.task-modal__close`, `.form-group__input` və s.
+- **Modifikatorlar (Modifiers):** `.btn--primary`, `.btn--secondary`, `.kanban-column__dot--pending`, `.priority-badge--low`, `.priority-badge--high`, `.task-modal--hidden`, `.task-card__btn--edit`, `.task-card__btn--delete`.
+
+---
+
+### 2. Tapşırıq Əlavə Etmə Funksionallığı (Add Task)
+- `+ Yeni Tapşırıq` düyməsinə kliklədikdə `openModal()` çağırılır və Modal `Yeni Tapşırıq` başlığı ilə açılır.
+- Forma `Başlıq *` (məcburi meyar), `Açıqlama` və `Prioritet dərəcəsi` (`Aşağı`, `Orta`, `Yüksək`) sahələrindən ibarətdir.
+- `Yadda saxla` düyməsi sıxıldıqda:
+  - Formanın validation-ı yoxlanılır (Başlıq boşdursa əlavə olunmur).
+  - Unikal `id` (`Date.now().toString()`) yaradılaraq yeni obyekt `tasks` massivinə `gozlamada` statusu ilə daxil edilir.
+  - Modal bağlanır, forma sıfırlanır və `renderBoard()` çağırılaraq DOM dərhal yenilənir.
+- `Ləğv et` düyməsi və ya modalın `close-outline` (X) düyməsi sıxıldıqda modal heç bir dəyişiklik etmədən bağlanır.
+
+---
+
+### 3. Tapşırıq Redaktə Etmə Funksionallığı (Edit Task)
+- Kart üzərindəki narıncı qələm (`pencil-outline`) ikonuna kliklədikdə `openModal(task)` çağırılır.
+- `editingTaskId` dəyişəni aktivləşdirilir və Modal başlığı `Tapşırığı Redaktə Et` olaraq dəyişdirilir.
+- Formanın sahələri mövcud tapşırığın məlumatları ilə pre-fill olunur (avtomatik doldurulur).
+- Dəyişikliklər edilib `Yadda saxla` vurulduqda, massivdəki həmin `id`-li tapşırığın məlumatları yenilənir və board DOM-da dərhal əks olunur.
+
+---
+
+### 4. Tapşırıq Silmə Funksionallığı (Delete Task)
+- Kart üzərindəki qırmızı zibil qutusu (`trash-outline`) ikonuna kliklədikdə brauzerin doğma təsdiq pəncərəsi çağırılır:
+  `confirm("Bu tapşırığı silmək istədiyinizdən əminsiniz?")` (Videodakı sorğu mesajına 100% uyğun).
+- İstifadəçi `OK` (Təsdiq) etdikdə tapşırıq `tasks` massivindən silinir və sütun sayğacları və kart siyahısı dərhal yenilənir. `Cancel` etdikdə isə tapşırıq olduğu kimi qalır.
+
+---
+
 ## 📁 Fayl Strukturu
 
 ```
 .
-├── index.html        # Kanban board HTML strukturu, Ionicons CDN və Modal komponenti
-├── styles.css        # Sırf Vanilla CSS (No Webkit, No Framework)
-├── script.js        # JavaScript massivindən dinamik DOM renderasiyası
+├── index.html        # BEM sinifləri və Ionicons CDN ilə yenilənmiş HTML
+├── styles.css        # Pure Vanilla CSS (BEM naming, No Webkit, No Framework)
+├── script.js        # Add / Edit / Delete funksionallıqları və BEM dinamik DOM
 ├── guide.md          # Checkpoint təlimatları
-└── readme.md         # Layihənin addım-addım sənədləşdirilməsi
+└── readme.md         # Layihənin addım-addım sənədləşdirilməsi (CP-1 və CP-2)
 ```

@@ -15,27 +15,27 @@
 </head>
 
 <body>
-    <div class="app-container">
-        <!-- Header -->
+    <div class="kanban-app">
+        <!-- App Header -->
         <header class="app-header">
-            <div class="header-brand">
-                <div class="logo-icon">
+            <div class="app-header__brand">
+                <div class="app-header__logo">
                     <ion-icon name="grid-outline"></ion-icon>
                 </div>
-                <h1 class="app-title">Kanban İdarəetmə</h1>
+                <h1 class="app-header__title">Kanban İdarəetmə</h1>
             </div>
 
-            <div class="header-actions">
+            <div class="app-header__actions">
                 <!-- Search Box -->
                 <div class="search-box">
-                    <ion-icon name="search-outline" class="search-icon"></ion-icon>
-                    <input type="text" id="searchInput" placeholder="Tapşırıq əsasında axtar...">
+                    <ion-icon name="search-outline" class="search-box__icon"></ion-icon>
+                    <input type="text" id="searchInput" class="search-box__input" placeholder="Tapşırıq əsasında axtar...">
                 </div>
 
                 <!-- Priority Filter Dropdown -->
                 <div class="filter-box">
-                    <ion-icon name="funnel-outline" class="filter-icon"></ion-icon>
-                    <select id="priorityFilter">
+                    <ion-icon name="funnel-outline" class="filter-box__icon"></ion-icon>
+                    <select id="priorityFilter" class="filter-box__select">
                         <option value="all">Bütün prioritetlər</option>
                         <option value="low">Aşağı</option>
                         <option value="medium">Orta</option>
@@ -44,7 +44,7 @@
                 </div>
 
                 <!-- New Task Button -->
-                <button id="openModalBtn" class="btn-primary">
+                <button id="openModalBtn" class="btn btn--primary">
                     <ion-icon name="add-outline"></ion-icon>
                     <span>Yeni Tapşırıq</span>
                 </button>
@@ -55,73 +55,71 @@
         <main class="kanban-board">
             <!-- Column 1: Gözləmədə -->
             <div class="kanban-column" data-status="gozlamada">
-                <div class="column-header">
-                    <div class="column-title-group">
-                        <span class="status-dot dot-pending"></span>
-                        <h2 class="column-title">Gözləmədə</h2>
+                <div class="kanban-column__header">
+                    <div class="kanban-column__title-group">
+                        <span class="kanban-column__dot kanban-column__dot--pending"></span>
+                        <h2 class="kanban-column__title">Gözləmədə</h2>
                     </div>
-                    <span class="task-count" id="count-gozlamada">0</span>
+                    <span class="kanban-column__count" id="count-gozlamada">0</span>
                 </div>
-                <div class="task-list" id="list-gozlamada"></div>
+                <div class="kanban-column__list" id="list-gozlamada"></div>
             </div>
 
             <!-- Column 2: İcra olunur -->
             <div class="kanban-column" data-status="icra_olunur">
-                <div class="column-header">
-                    <div class="column-title-group">
-                        <span class="status-dot dot-in-progress"></span>
-                        <h2 class="column-title">İcra olunur</h2>
+                <div class="kanban-column__header">
+                    <div class="kanban-column__title-group">
+                        <span class="kanban-column__dot kanban-column__dot--in-progress"></span>
+                        <h2 class="kanban-column__title">İcra olunur</h2>
                     </div>
-                    <span class="task-count" id="count-icra_olunur">0</span>
+                    <span class="kanban-column__count" id="count-icra_olunur">0</span>
                 </div>
-                <div class="task-list" id="list-icra_olunur"></div>
+                <div class="kanban-column__list" id="list-icra_olunur"></div>
             </div>
 
             <!-- Column 3: Tamamlandı -->
             <div class="kanban-column" data-status="tamamlandi">
-                <div class="column-header">
-                    <div class="column-title-group">
-                        <span class="status-dot dot-completed"></span>
-                        <h2 class="column-title">Tamamlandı</h2>
+                <div class="kanban-column__header">
+                    <div class="kanban-column__title-group">
+                        <span class="kanban-column__dot kanban-column__dot--completed"></span>
+                        <h2 class="kanban-column__title">Tamamlandı</h2>
                     </div>
-                    <span class="task-count" id="count-tamamlandi">0</span>
+                    <span class="kanban-column__count" id="count-tamamlandi">0</span>
                 </div>
-                <div class="task-list" id="list-tamamlandi"></div>
+                <div class="kanban-column__list" id="list-tamamlandi"></div>
             </div>
         </main>
     </div>
 
     <!-- Modal Dialog (Add / Edit Task) -->
-    <div id="taskModal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3 id="modalTitle" class="modal-heading">Yeni Tapşırıq</h3>
-                <button type="button" id="closeModalBtn" class="close-btn">
+    <div id="taskModal" class="task-modal task-modal--hidden">
+        <div class="task-modal__card">
+            <div class="task-modal__header">
+                <h3 id="modalTitle" class="task-modal__title">Yeni Tapşırıq</h3>
+                <button type="button" id="closeModalBtn" class="task-modal__close">
                     <ion-icon name="close-outline"></ion-icon>
                 </button>
             </div>
-            <form id="taskForm" class="modal-body">
+            <form id="taskForm" class="task-modal__body">
                 <div class="form-group">
-                    <label for="taskTitleInput" class="form-label">Başlıq <span class="required">*</span></label>
-                    <input type="text" id="taskTitleInput" class="form-input" placeholder="Məs: API inteqrasiyası"
-                        required>
+                    <label for="taskTitleInput" class="form-group__label">Başlıq <span class="form-group__required">*</span></label>
+                    <input type="text" id="taskTitleInput" class="form-group__input" placeholder="Məs: API inteqrasiyası" required>
                 </div>
                 <div class="form-group">
-                    <label for="taskDescInput" class="form-label">Açıqlama</label>
-                    <textarea id="taskDescInput" class="form-textarea"
-                        placeholder="Tapşırıq haqqında qısa qeyd..."></textarea>
+                    <label for="taskDescInput" class="form-group__label">Açıqlama</label>
+                    <textarea id="taskDescInput" class="form-group__textarea" placeholder="Tapşırıq haqqında qısa qeyd..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="taskPriorityInput" class="form-label">Prioritet dərəcəsi</label>
-                    <select id="taskPriorityInput" class="form-select">
+                    <label for="taskPriorityInput" class="form-group__label">Prioritet dərəcəsi</label>
+                    <select id="taskPriorityInput" class="form-group__select">
                         <option value="low">Aşağı (Low)</option>
                         <option value="medium">Orta (Medium)</option>
                         <option value="high">Yüksək (High)</option>
                     </select>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" id="cancelModalBtn" class="btn-secondary">Ləğv et</button>
-                    <button type="submit" class="btn-primary">Yadda saxla</button>
+                <div class="task-modal__footer">
+                    <button type="button" id="cancelModalBtn" class="btn btn--secondary">Ləğv et</button>
+                    <button type="submit" class="btn btn--primary">Yadda saxla</button>
                 </div>
             </form>
         </div>
