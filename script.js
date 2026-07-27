@@ -1,13 +1,36 @@
 /**
+ * Checkpoint-1 & Checkpoint-2 Implementation
  * Checkpoint-1: Dynamic rendering of tasks from a JS array (DOM manipulation)
+ * Checkpoint-2: Add / edit / delete task functionality
  */
 
-// Global State - Task Array
+// Global State
 let tasks = [
-
+    {
+        id: "1",
+        title: "DEVJOINT",
+        description: "",
+        priority: "low",
+        status: "tamamlandi",
+        createdAt: "MƏT 15"
+    },
+    {
+        id: "2",
+        title: "Devjoint 1",
+        description: "Frontend",
+        priority: "high",
+        status: "gozlamada",
+        createdAt: "MƏT 15"
+    }
 ];
 
-// Helper: Format Priority Display Text
+let editingTaskId = null;
+
+// DOM Elements
+let taskModal, modalTitle, taskForm, taskTitleInput, taskDescInput, taskPriorityInput;
+let openModalBtn, closeModalBtn, cancelModalBtn;
+
+// Helper: Format Priority Label
 function getPriorityLabel(priority) {
     switch (priority) {
         case 'low':
@@ -21,60 +44,68 @@ function getPriorityLabel(priority) {
     }
 }
 
-// Create Task Card Element
+// Create Task Card Element (BEM Naming)
 function createTaskCard(task) {
     const card = document.createElement('div');
     card.className = 'task-card';
     card.setAttribute('data-id', task.id);
     card.setAttribute('draggable', 'true');
 
-    // Priority Tag
+    // Header & Priority Badge
     const headerDiv = document.createElement('div');
-    headerDiv.className = 'card-header';
-
+    headerDiv.className = 'task-card__header';
+    
     const badge = document.createElement('span');
-    badge.className = `priority-badge ${task.priority}`;
+    badge.className = `priority-badge priority-badge--${task.priority}`;
     badge.textContent = getPriorityLabel(task.priority);
     headerDiv.appendChild(badge);
 
     // Title
     const title = document.createElement('h3');
-    title.className = 'card-title';
+    title.className = 'task-card__title';
     title.textContent = task.title;
 
     // Description (if present)
     let desc = null;
     if (task.description && task.description.trim() !== '') {
         desc = document.createElement('p');
-        desc.className = 'card-desc';
+        desc.className = 'task-card__desc';
         desc.textContent = task.description;
     }
 
     // Card Footer
     const footerDiv = document.createElement('div');
-    footerDiv.className = 'card-footer';
+    footerDiv.className = 'task-card__footer';
 
-    // Time Indicator with Ionicons
+    // Time Indicator
     const timeDiv = document.createElement('div');
-    timeDiv.className = 'card-time';
+    timeDiv.className = 'task-card__time';
     timeDiv.innerHTML = `
         <ion-icon name="time-outline"></ion-icon>
         <span>${task.createdAt || 'MƏT 15'}</span>
     `;
 
-    // Action Buttons with Ionicons (Edit / Delete)
+    // Actions (Edit & Delete)
     const actionsDiv = document.createElement('div');
-    actionsDiv.className = 'card-actions';
+    actionsDiv.className = 'task-card__actions';
 
     const editBtn = document.createElement('button');
-    editBtn.className = 'action-btn edit-btn';
+    editBtn.className = 'task-card__btn task-card__btn--edit';
     editBtn.setAttribute('title', 'Redaktə et');
     editBtn.innerHTML = `<ion-icon name="pencil-outline"></ion-icon>`;
+    editBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openModal(task);
+    });
 
     const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'action-btn delete-btn';
+    deleteBtn.className = 'task-card__btn task-card__btn--delete';
     deleteBtn.setAttribute('title', 'Sil');
     deleteBtn.innerHTML = `<ion-icon name="trash-outline"></ion-icon>`;
+    deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteTask(task.id);
+    });
 
     actionsDiv.appendChild(editBtn);
     actionsDiv.appendChild(deleteBtn);
@@ -93,7 +124,7 @@ function createTaskCard(task) {
     return card;
 }
 
-// Render Kanban Board dynamically from JS array
+// Render Kanban Board
 function renderBoard() {
     const statuses = ['gozlamada', 'icra_olunur', 'tamamlandi'];
 
@@ -103,23 +134,17 @@ function renderBoard() {
 
         if (!listEl || !countEl) return;
 
-        // Clear existing items
         listEl.innerHTML = '';
-
-        // Filter tasks for current column
         const columnTasks = tasks.filter(task => task.status === status);
 
-        // Update column count badge
         countEl.textContent = columnTasks.length;
 
-        // If no tasks, show empty state message
         if (columnTasks.length === 0) {
             const emptyEl = document.createElement('div');
-            emptyEl.className = 'empty-state';
+            emptyEl.className = 'kanban-column__empty';
             emptyEl.textContent = 'Burada tapşırıq yoxdur';
             listEl.appendChild(emptyEl);
         } else {
-            // Append card elements
             columnTasks.forEach(task => {
                 const cardEl = createTaskCard(task);
                 listEl.appendChild(cardEl);
@@ -128,7 +153,106 @@ function renderBoard() {
     });
 }
 
-// Initialize on DOM load
+// Open Modal (Add or Edit Mode)
+function openModal(taskToEdit = null) {
+    if (taskToEdit) {
+        editingTaskId = taskToEdit.id;
+        modalTitle.textContent = 'Tapşırığı Redaktə Et';
+        taskTitleInput.value = taskToEdit.title;
+        taskDescInput.value = taskToEdit.description || '';
+        taskPriorityInput.value = taskToEdit.priority;
+    } else {
+        editingTaskId = null;
+        modalTitle.textContent = 'Yeni Tapşırıq';
+        taskForm.reset();
+        taskPriorityInput.value = 'low';
+    }
+    taskModal.classList.remove('task-modal--hidden');
+    taskTitleInput.focus();
+}
+
+// Close Modal
+function closeModal() {
+    taskModal.classList.add('task-modal--hidden');
+    taskForm.reset();
+    editingTaskId = null;
+}
+
+// Form Submit Handler (Add / Edit Task)
+function handleFormSubmit(e) {
+    e.preventDefault();
+
+    const title = taskTitleInput.value.trim();
+    const description = taskDescInput.value.trim();
+    const priority = taskPriorityInput.value;
+
+    if (!title) return;
+
+    if (editingTaskId !== null) {
+        // Edit existing task
+        const taskIndex = tasks.findIndex(t => t.id === editingTaskId);
+        if (taskIndex !== -1) {
+            tasks[taskIndex].title = title;
+            tasks[taskIndex].description = description;
+            tasks[taskIndex].priority = priority;
+        }
+    } else {
+        // Create new task
+        const newTask = {
+            id: Date.now().toString(),
+            title: title,
+            description: description,
+            priority: priority,
+            status: 'gozlamada',
+            createdAt: 'MƏT 15'
+        };
+        tasks.push(newTask);
+    }
+
+    closeModal();
+    renderBoard();
+}
+
+// Delete Task with Browser Confirm Prompt
+function deleteTask(id) {
+    const isConfirmed = confirm('Bu tapşırığı silmək istədiyinizdən əminsiniz?');
+    if (isConfirmed) {
+        tasks = tasks.filter(task => task.id !== id);
+        renderBoard();
+    }
+}
+
+// Initialize Event Listeners & Board
 document.addEventListener('DOMContentLoaded', () => {
+    // Bind DOM elements
+    taskModal = document.getElementById('taskModal');
+    modalTitle = document.getElementById('modalTitle');
+    taskForm = document.getElementById('taskForm');
+    taskTitleInput = document.getElementById('taskTitleInput');
+    taskDescInput = document.getElementById('taskDescInput');
+    taskPriorityInput = document.getElementById('taskPriorityInput');
+
+    openModalBtn = document.getElementById('openModalBtn');
+    closeModalBtn = document.getElementById('closeModalBtn');
+    cancelModalBtn = document.getElementById('cancelModalBtn');
+
+    // Bind Event Listeners
+    if (openModalBtn) openModalBtn.addEventListener('click', () => openModal());
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+    if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
+
+    if (taskModal) {
+        taskModal.addEventListener('click', (e) => {
+            if (e.target === taskModal) {
+                closeModal();
+            }
+        });
+    }
+
+    if (taskForm) {
+        taskForm.addEventListener('submit', handleFormSubmit);
+    }
+
+    // Initial render
     renderBoard();
 });
