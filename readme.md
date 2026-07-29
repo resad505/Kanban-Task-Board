@@ -181,13 +181,44 @@ Bu mərhələdə (Checkpoint-5) tapşırıqların real-vaxt (real-time) rejimind
 
 ---
 
+# Checkpoint-6: Safe rendering (XSS protection) + duplicate task prevention
+
+Bu mərhələdə (Checkpoint-6) iki kritik təhlükəsizlik mexanizmi reallaşdırıldı: **XSS (Cross-Site Scripting) hücumlarından qorunma** və **eyni adlı tapşırığın təkrar əlavə olunmasının qarşısının alınması (duplicate prevention)**.
+
+---
+
+## 🛠️ Checkpoint-6 Nələr Edildi Və Necə Hazırlandı?
+
+### 1. XSS Qorunması (XSS Protection)
+
+**Problem:** İstifadəçi daxil etdiyi mətn `innerHTML` vasitəsilə DOM-a yazılsaydı, xüsusi HTML/JavaScript simvolları icra oluna bilərdi (məsələn: `<script>alert('XSS')</script>`).
+
+**Həll — `sanitizeText()` funksiyası:**
+- İstifadəçinin daxil etdiyi xam mətn (`rawTitle`, `rawDescription`) `sanitizeText()` funksiyasından keçirilir.
+- Funksiya gizli bir `<div>` elementi yaradır, daxil olan mətni `.textContent` ilə yazır (bu mərhələdə brauzerin özü `<`, `>`, `"`, `&` kimi simvolları avtomatik kodlayır), sonra `.innerHTML`-dən çıxarır. Beləliklə, mətndəki hər hansı HTML teqləri zərərsizləşdirilir.
+- Kart yaradılarkən (`createTaskCard`) istifadəçi məlumatları yalnız `.textContent` ilə DOM-a yazılır: `title.textContent`, `desc.textContent`, `timeSpan.textContent` — `innerHTML`-dən tamamilə imtina edildi.
+- `<ion-icon>` elementlərinin özü `document.createElement('ion-icon')` ilə yaradılıb `setAttribute()` vasitəsilə konfiqurasiya edildi — heç bir istifadəçi məlumatı `innerHTML`-ə ötürülmür.
+
+---
+
+### 2. Eyni Tapşırığın Əlavə Olunmasının Qarşısının Alınması (Duplicate Prevention)
+
+**Həll — `isDuplicateTask()` funksiyası:**
+- Forma göndərilmədən əvvəl yeni tapşırığın başlığı mövcud bütün tapşırıqların başlıqları ilə müqayisə edilir.
+- Müqayisə registrə həssas deyil: hər iki tərəf `.trim().toLowerCase()` vasitəsilə normallaşdırılır (məsələn, `"test"`, `"TEST"`, `"Test "` eyni sayılır).
+- **Redaktə zamanı istisna:** `isDuplicateTask(rawTitle, editingTaskId)` çağırılarkən `excludeId` parametri ilə redaktə olunan tapşırığın özü müqayisədən xaric edilir — eyni tapşırığı eyni adla saxlamaq mümkündür.
+- **Xəta mesajı:** Dublikat aşkar olunarsa, formada submit dayandırılır və başlıq inputunun altında aydın xəta mesajı göstərilir: `"Bu adda tapşırıq artıq mövcuddur. Fərqli bir ad seçin."` — modal bağlanmır, istifadəçi başlığı dəyişə bilir.
+- `clearTitleError()` funksiyası modal açılarkən, bağlanarkən avtomatik çağırılaraq xəta mesajı təmizlənir.
+
+---
+
 ## 📁 Fayl Strukturu
 
 ```
 .
 ├── index.html        # BEM sinifləri və Ionicons CDN ilə HTML
 ├── styles.css        # BEM metodologiyalı Vanilla CSS
-├── script.js        # DOM, HTML5 Drag-and-Drop, localStorage və Real-time Search/Filter
+├── script.js        # XSS qorunması, Dublikat önləmə, localStorage və Real-time Filter
 ├── guide.md          # Checkpoint təlimatları
-└── readme.md         # Layihənin sənədləşdirilməsi (CP-1, CP-2, CP-3, CP-4 və CP-5)
+└── readme.md         # Layihənin sənədləşdirilməsi (CP-1 → CP-6)
 ```
