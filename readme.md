@@ -151,13 +151,43 @@ Bu mərhələdə (Checkpoint-4) brauzerin doğma **`localStorage`** imkanlarınd
 
 ---
 
+# Checkpoint-5: Search and filter by keyword/priority
+
+Bu mərhələdə (Checkpoint-5) tapşırıqların real-vaxt (real-time) rejimində axtarış inputu (`#searchInput`) vasitəsilə açar sözə görə filtrlənməsi və prioritet dropdown menyusu (`#priorityFilter`) vasitəsilə dərəcəyə görə seçilməsi funksionallıqları tam reallaşdırıldı.
+
+---
+
+## 🛠️ Checkpoint-5 Nələr Edildi Və Necə Hazırlandı?
+
+### 1. Açar Sözə Göre Real-Vaxt Axtarış (Search by Keyword)
+- Axtarış inputuna (`#searchInput`) `input` hadisəsi (event listener) bağlandı. İstifadəçi hər hərf yazdıqda `renderBoard()` funksiyası çağırılır.
+- Axtarış sorğusu registrə həssas olmadan (`toLowerCase()`) həm tapşırığın **başlığında** (`title`), həm də **açıqlamasında** (`description`) axtarılır.
+
+---
+
+### 2. Prioritet Dərəcəsinə Göre Filtrləmə (Filter by Priority)
+- Prioritet dropdown menyusuna (`#priorityFilter`) `change` hadisəsi bağlandı.
+- İstifadəçi `Bütün prioritetlər` (`all`), `Aşağı` (`low`), `Orta` (`medium`) və ya `Yüksək` (`high`) seçimlərini etdikdə lövhə anında filtrlənir.
+
+---
+
+### 3. Kombinə Edilmiş Filtrləmə Logikası (Combined Filtering)
+- `renderBoard()` funksiyası hər 3 parametri eyni anda nəzərə alır:
+  1. Tapşırığın sütun statusu (`gozlamada`, `icra_olunur`, `tamamlandi`)
+  2. Seçilmiş prioritet dərəcəsi (`all` deyilsə, uyğun gələn tapşırıqlar)
+  3. Axtarış inputundakı mətn (boş deyilsə, başlığında və ya açıqlamasında həmin söz olan tapşırıqlar)
+- Filtrlənmiş nəticələrə əsasən hər sütunun yuxarısındakı **sayğac** (`count-<status>`) anında yenilənir.
+- Əgər axtarış və ya filter nəticəsində sütunda heç bir tapşırıq qalmazsa, həmin sütunda `<div class="kanban-column__empty">Burada tapşırıq yoxdur</div>` bloku göstərilir.
+
+---
+
 ## 📁 Fayl Strukturu
 
 ```
 .
 ├── index.html        # BEM sinifləri və Ionicons CDN ilə HTML
 ├── styles.css        # BEM metodologiyalı Vanilla CSS
-├── script.js        # DOM, HTML5 Drag-and-Drop və localStorage sinxronizasiyası
+├── script.js        # DOM, HTML5 Drag-and-Drop, localStorage və Real-time Search/Filter
 ├── guide.md          # Checkpoint təlimatları
-└── readme.md         # Layihənin sənədləşdirilməsi (CP-1, CP-2, CP-3 və CP-4)
+└── readme.md         # Layihənin sənədləşdirilməsi (CP-1, CP-2, CP-3, CP-4 və CP-5)
 ```
