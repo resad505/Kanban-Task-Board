@@ -1,13 +1,41 @@
 /**
- * Checkpoint-1, Checkpoint-2 & Checkpoint-3 Implementation
+ * Checkpoint-1, Checkpoint-2, Checkpoint-3 & Checkpoint-4 Implementation
  * Checkpoint-1: Dynamic rendering of tasks from a JS array (DOM manipulation)
  * Checkpoint-2: Add / edit / delete task functionality
  * Checkpoint-3: Cross-column drag-and-drop (HTML5 Drag and Drop API)
+ * Checkpoint-4: Storage with localStorage (state is saved when page is refreshed)
  */
 
-// Global State
-let tasks = [];
+// Storage Key
+const STORAGE_KEY = 'kanban_tasks';
 
+// Load tasks from localStorage or initialize empty array
+function loadTasksFromStorage() {
+    try {
+        const storedTasks = localStorage.getItem(STORAGE_KEY);
+        if (storedTasks) {
+            const parsed = JSON.parse(storedTasks);
+            if (Array.isArray(parsed)) {
+                return parsed;
+            }
+        }
+    } catch (error) {
+        console.error('localStorage-dən tapşırıqlar oxunarkən xəta baş verdi:', error);
+    }
+    return [];
+}
+
+// Save tasks to localStorage
+function saveTasksToStorage() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    } catch (error) {
+        console.error('localStorage-ə tapşırıqlar yazılarkən xəta baş verdi:', error);
+    }
+}
+
+// Global State
+let tasks = loadTasksFromStorage();
 let editingTaskId = null;
 let draggedTaskId = null;
 
@@ -168,7 +196,6 @@ function setupColumnDragAndDrop() {
         });
 
         column.addEventListener('dragleave', (e) => {
-            // Remove highlight only if leaving column container
             if (!column.contains(e.relatedTarget)) {
                 column.classList.remove('kanban-column--drag-over');
             }
@@ -186,6 +213,7 @@ function setupColumnDragAndDrop() {
             const task = tasks.find(t => t.id === taskId);
             if (task && task.status !== targetStatus) {
                 task.status = targetStatus;
+                saveTasksToStorage();
                 renderBoard();
             }
         });
@@ -248,6 +276,7 @@ function handleFormSubmit(e) {
         tasks.push(newTask);
     }
 
+    saveTasksToStorage();
     closeModal();
     renderBoard();
 }
@@ -257,6 +286,7 @@ function deleteTask(id) {
     const isConfirmed = confirm('Bu tapşırığı silmək istədiyinizdən əminsiniz?');
     if (isConfirmed) {
         tasks = tasks.filter(task => task.id !== id);
+        saveTasksToStorage();
         renderBoard();
     }
 }

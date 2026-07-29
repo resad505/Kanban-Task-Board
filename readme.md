@@ -124,13 +124,40 @@ Bu mərhələdə (Checkpoint-3) doğma **HTML5 Drag and Drop API**-dən istifad�
 
 ---
 
+# Checkpoint-4: Storage with localStorage (state is saved when the page is refreshed)
+
+Bu mərhələdə (Checkpoint-4) brauzerin doğma **`localStorage`** imkanlarından istifadə edərək lövhədəki bütün tapşırıqların halının (state) saxlanılması və səhifə yeniləndikdə (refresh) avtomatik bərpası həyata keçirildi.
+
+---
+
+## 🛠️ Checkpoint-4 Nələr Edildi Və Necə Hazırlandı?
+
+### 1. `localStorage` Məlumatlarının Saxlanılması (`saveTasksToStorage`)
+- `STORAGE_KEY = 'kanban_tasks'` sabit açar sözü təyin edildi.
+- `saveTasksToStorage()` funksiyası yaradıldı: `JSON.stringify(tasks)` vasitəsilə tapşırıqlar massivi string formatına çevrilərək `localStorage.setItem()` ilə yaddaşa yazılır.
+- Dəyişiklik baş verən hər an avtomatik sinxronizasiya:
+  1. **Yeni tapşırıq əlavə edildikdə** (`handleFormSubmit`)
+  2. **Mövcud tapşırıq redaktə edildikdə** (`handleFormSubmit`)
+  3. **Tapşırıq silindikdə** (`deleteTask`)
+  4. **Tapşırıq başqa sütuna sürüklənib buraxıldıqda** (`drop` event)
+  `saveTasksToStorage()` çağırılaraq məlumatlar anında `localStorage`-ə yazılır.
+
+---
+
+### 2. Səhifə Yeniləndikdə Məlumatların Bərpası (`loadTasksFromStorage`)
+- `loadTasksFromStorage()` funksiyası yaradıldı: `localStorage.getItem('kanban_tasks')` vasitəsilə yaddaşdakı məlumat oxunur və `JSON.parse()` ilə JS obyekt massivinə çevrilir.
+- **Təhlükəsizlik və İstisna İdarəetməsi (Error Handling):** `try...catch` bloku vasitəsilə `localStorage` saxlamasında yarana biləcək hər hansı xəta tutulur. Əgər yaddaş boşdursa və ya xəta baş verərsə, tətbiq çəkmədən boş massiv `[]` qaytarır.
+- Səhifə yüklənəndə (`DOMContentLoaded`) tətbiq başlanğıc halı kimi birbaşa `localStorage`-dən gələn məlumatları istifadə edərək lövhəni render edir.
+
+---
+
 ## 📁 Fayl Strukturu
 
 ```
 .
-├── index.html        # BEM sinifləri və Ionicons CDN ilə yenilənmiş HTML
-├── styles.css        # Drag-and-Drop BEM modifikatorları ilə Vanilla CSS
-├── script.js        # HTML5 Drag and Drop API inteqrasiyası və dinamik DOM
+├── index.html        # BEM sinifləri və Ionicons CDN ilə HTML
+├── styles.css        # BEM metodologiyalı Vanilla CSS
+├── script.js        # DOM, HTML5 Drag-and-Drop və localStorage sinxronizasiyası
 ├── guide.md          # Checkpoint təlimatları
-└── readme.md         # Layihənin sənədləşdirilməsi (CP-1, CP-2 və CP-3)
+└── readme.md         # Layihənin sənədləşdirilməsi (CP-1, CP-2, CP-3 və CP-4)
 ```
