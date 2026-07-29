@@ -1,10 +1,11 @@
 /**
- * Checkpoint-1, Checkpoint-2, Checkpoint-3, Checkpoint-4 & Checkpoint-5 Implementation
+ * Checkpoint-1 through Checkpoint-6 Implementation
  * Checkpoint-1: Dynamic rendering of tasks from a JS array (DOM manipulation)
  * Checkpoint-2: Add / edit / delete task functionality
  * Checkpoint-3: Cross-column drag-and-drop (HTML5 Drag and Drop API)
  * Checkpoint-4: Storage with localStorage (state is saved when page is refreshed)
  * Checkpoint-5: Search and filter by keyword/priority
+ * Checkpoint-6: Safe rendering (XSS protection) + duplicate task prevention
  */
 
 // Storage Key
@@ -35,6 +36,22 @@ function saveTasksToStorage() {
     }
 }
 
+// XSS Protection: Sanitize text input by escaping HTML special characters
+function sanitizeText(rawText) {
+    const tempEl = document.createElement('div');
+    tempEl.textContent = rawText;
+    return tempEl.innerHTML;
+}
+
+// Duplicate Prevention: Check if a task with same title already exists (case-insensitive)
+function isDuplicateTask(title, excludeId = null) {
+    const normalizedTitle = title.trim().toLowerCase();
+    return tasks.some(task => {
+        if (excludeId && task.id === excludeId) return false;
+        return task.title.trim().toLowerCase() === normalizedTitle;
+    });
+}
+
 // Global State
 let tasks = loadTasksFromStorage();
 let editingTaskId = null;
@@ -60,6 +77,7 @@ function getPriorityLabel(priority) {
 }
 
 // Create Task Card Element (BEM Naming & Drag-and-Drop)
+// XSS-safe: all user data written via textContent, not innerHTML
 function createTaskCard(task) {
     const card = document.createElement('div');
     card.className = 'task-card';
@@ -90,33 +108,38 @@ function createTaskCard(task) {
 
     const badge = document.createElement('span');
     badge.className = `priority-badge priority-badge--${task.priority}`;
-    badge.textContent = getPriorityLabel(task.priority);
+    badge.textContent = getPriorityLabel(task.priority); // Safe: textContent
     headerDiv.appendChild(badge);
 
-    // Title
+    // Title — XSS safe via textContent
     const title = document.createElement('h3');
     title.className = 'task-card__title';
-    title.textContent = task.title;
+    title.textContent = task.title; // Safe: textContent
 
-    // Description (if present)
+    // Description — XSS safe via textContent
     let desc = null;
     if (task.description && task.description.trim() !== '') {
         desc = document.createElement('p');
         desc.className = 'task-card__desc';
-        desc.textContent = task.description;
+        desc.textContent = task.description; // Safe: textContent
     }
 
     // Card Footer
     const footerDiv = document.createElement('div');
     footerDiv.className = 'task-card__footer';
 
-    // Time Indicator
+    // Time Indicator — XSS safe: icon via innerHTML (static), time via textContent
     const timeDiv = document.createElement('div');
     timeDiv.className = 'task-card__time';
-    timeDiv.innerHTML = `
-        <ion-icon name="time-outline"></ion-icon>
-        <span>${task.createdAt || 'MƏT 15'}</span>
-    `;
+
+    const timeIcon = document.createElement('ion-icon');
+    timeIcon.setAttribute('name', 'time-outline');
+
+    const timeSpan = document.createElement('span');
+    timeSpan.textContent = task.createdAt || 'MƏT 15'; // Safe: textContent
+
+    timeDiv.appendChild(timeIcon);
+    timeDiv.appendChild(timeSpan);
 
     // Actions (Edit & Delete)
     const actionsDiv = document.createElement('div');
@@ -125,7 +148,9 @@ function createTaskCard(task) {
     const editBtn = document.createElement('button');
     editBtn.className = 'task-card__btn task-card__btn--edit';
     editBtn.setAttribute('title', 'Redaktə et');
-    editBtn.innerHTML = `<ion-icon name="pencil-outline"></ion-icon>`;
+    const editIcon = document.createElement('ion-icon');
+    editIcon.setAttribute('name', 'pencil-outline');
+    editBtn.appendChild(editIcon);
     editBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         openModal(task);
@@ -134,7 +159,9 @@ function createTaskCard(task) {
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'task-card__btn task-card__btn--delete';
     deleteBtn.setAttribute('title', 'Sil');
-    deleteBtn.innerHTML = `<ion-icon name="trash-outline"></ion-icon>`;
+    const deleteIcon = document.createElement('ion-icon');
+    deleteIcon.setAttribute('name', 'trash-outline');
+    deleteBtn.appendChild(deleteIcon);
     deleteBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         deleteTask(task.id);
@@ -241,8 +268,26 @@ function setupColumnDragAndDrop() {
     });
 }
 
+// Show inline error on the title input
+function showTitleError(message) {
+    let errorEl = document.getElementById('titleErrorMsg');
+    if (!errorEl) {
+        errorEl = document.createElement('p');
+        errorEl.id = 'titleErrorMsg';
+        errorEl.style.cssText = 'color:#EF4444;font-size:12px;margin-top:4px;';
+        taskTitleInput.parentNode.appendChild(errorEl);
+    }
+    errorEl.textContent = message;
+}
+
+function clearTitleError() {
+    const errorEl = document.getElementById('titleErrorMsg');
+    if (errorEl) errorEl.textContent = '';
+}
+
 // Open Modal (Add or Edit Mode)
 function openModal(taskToEdit = null) {
+    clearTitleError();
     if (taskToEdit) {
         editingTaskId = taskToEdit.id;
         modalTitle.textContent = 'Tapşırığı Redaktə Et';
@@ -264,17 +309,30 @@ function closeModal() {
     taskModal.classList.add('task-modal--hidden');
     taskForm.reset();
     editingTaskId = null;
+    clearTitleError();
 }
 
 // Form Submit Handler (Add / Edit Task)
+// XSS Protection: sanitizeText() applied; Duplicate Prevention: isDuplicateTask() checked
 function handleFormSubmit(e) {
     e.preventDefault();
+    clearTitleError();
 
-    const title = taskTitleInput.value.trim();
-    const description = taskDescInput.value.trim();
+    const rawTitle = taskTitleInput.value.trim();
+    const rawDescription = taskDescInput.value.trim();
     const priority = taskPriorityInput.value;
 
-    if (!title) return;
+    if (!rawTitle) return;
+
+    // Checkpoint-6: Sanitize input to prevent XSS
+    const title = sanitizeText(rawTitle);
+    const description = sanitizeText(rawDescription);
+
+    // Checkpoint-6: Duplicate task prevention (case-insensitive title match)
+    if (isDuplicateTask(rawTitle, editingTaskId)) {
+        showTitleError('Bu adda tapşırıq artıq mövcuddur. Fərqli bir ad seçin.');
+        return;
+    }
 
     if (editingTaskId !== null) {
         // Edit existing task
