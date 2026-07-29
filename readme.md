@@ -90,13 +90,47 @@ Bütün CSS strukturu BEM standarta uyğunlaşdırıldı:
 
 ---
 
+# Checkpoint-3: Cross-column drag-and-drop (HTML5 Drag and Drop API)
+
+Bu mərhələdə (Checkpoint-3) doğma **HTML5 Drag and Drop API**-dən istifadə edərək tapşırıq kartlarının sütunlar arası sürüklənib sürüşdürülməsi (Drag-and-Drop) funksionallığı tam reallaşdırıldı. Bütün BEM strukturu və çərçivəsiz Vanilla CSS prinsipləri gözlənildi.
+
+---
+
+## 🛠️ Checkpoint-3 Nələr Edildi Və Necə Hazırlandı?
+
+### 1. Kart Sürüklənmə Hadisələri (`dragstart` və `dragend`)
+- Hər dinamik yaradılan kart `.task-card` elementinə `draggable="true"` atributu təyin edildi.
+- **`dragstart` Hadisəsi:**
+  - Sürüklənən tapşırığın `id` məlumatı `e.dataTransfer.setData('text/plain', task.id)` vasitəsilə saxlanılır.
+  - Sürükləmə effektini göstərmək üçün `e.dataTransfer.effectAllowed = 'move'` müəyyən edilir.
+  - Karta `.task-card--dragging` BEM modifikatoru əlavə olunur (şəffaflıq 0.4 və kəsilən kənar xətt effekti ilə).
+- **`dragend` Hadisəsi:**
+  - Sürükləmə bitdikdə kartdan `.task-card--dragging` sinfi çıxarılır və sütunlardakı vurğulama effektləri təmizlənir.
+
+---
+
+### 2. Sütun Hədəf Hadisələri (`dragover`, `dragleave` və `drop`)
+- `setupColumnDragAndDrop()` funksiyası vasitəsilə 3 Kanban sütununa (`.kanban-column`) dinləyicilər bağlandı:
+- **`dragover` Hadisəsi:**
+  - `e.preventDefault()` çağırılaraq elementin sürüşdürmə hədəfi olması təmin edilir.
+  - Sütuna `.kanban-column--drag-over` BEM modifikatoru əlavə edilir (bənövşəyi kəsilən çərçivə və açıq tonlu vurğulama fonu ilə).
+- **`dragleave` Hadisəsi:**
+  - Sürüklənən kart sütun sahəsindən çıxdıqda `.kanban-column--drag-over` sinfi silinir.
+- **`drop` Hadisəsi:**
+  - `e.preventDefault()` ilə standart brauzer davranışı dayandırılır.
+  - Sütunun `data-status` atributundan hədəf statusu (`gozlamada`, `icra_olunur`, `tamamlandi`) oxunur.
+  - `e.dataTransfer.getData('text/plain')` vasitəsilə sürüklənən tapşırığın `id`-si əldə edilir.
+  - `tasks` massivində həmin tapşırığın `status` dəyəri yeni sütunun statusu ilə yenilənir və `renderBoard()` çağırılaraq həm sütun sayğacları, həm də kartlar DOM-da dərhal yerini dəyişir.
+
+---
+
 ## 📁 Fayl Strukturu
 
 ```
 .
 ├── index.html        # BEM sinifləri və Ionicons CDN ilə yenilənmiş HTML
-├── styles.css        # Pure Vanilla CSS (BEM naming, No Webkit, No Framework)
-├── script.js        # Add / Edit / Delete funksionallıqları və BEM dinamik DOM
+├── styles.css        # Drag-and-Drop BEM modifikatorları ilə Vanilla CSS
+├── script.js        # HTML5 Drag and Drop API inteqrasiyası və dinamik DOM
 ├── guide.md          # Checkpoint təlimatları
-└── readme.md         # Layihənin addım-addım sənədləşdirilməsi (CP-1 və CP-2)
+└── readme.md         # Layihənin sənədləşdirilməsi (CP-1, CP-2 və CP-3)
 ```

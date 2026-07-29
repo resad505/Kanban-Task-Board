@@ -1,30 +1,15 @@
 /**
- * Checkpoint-1 & Checkpoint-2 Implementation
+ * Checkpoint-1, Checkpoint-2 & Checkpoint-3 Implementation
  * Checkpoint-1: Dynamic rendering of tasks from a JS array (DOM manipulation)
  * Checkpoint-2: Add / edit / delete task functionality
+ * Checkpoint-3: Cross-column drag-and-drop (HTML5 Drag and Drop API)
  */
 
 // Global State
-let tasks = [
-    {
-        id: "1",
-        title: "DEVJOINT",
-        description: "",
-        priority: "low",
-        status: "tamamlandi",
-        createdAt: "MƏT 15"
-    },
-    {
-        id: "2",
-        title: "Devjoint 1",
-        description: "Frontend",
-        priority: "high",
-        status: "gozlamada",
-        createdAt: "MƏT 15"
-    }
-];
+let tasks = [];
 
 let editingTaskId = null;
+let draggedTaskId = null;
 
 // DOM Elements
 let taskModal, modalTitle, taskForm, taskTitleInput, taskDescInput, taskPriorityInput;
@@ -44,17 +29,35 @@ function getPriorityLabel(priority) {
     }
 }
 
-// Create Task Card Element (BEM Naming)
+// Create Task Card Element (BEM Naming & Drag-and-Drop)
 function createTaskCard(task) {
     const card = document.createElement('div');
     card.className = 'task-card';
     card.setAttribute('data-id', task.id);
     card.setAttribute('draggable', 'true');
 
+    // Drag and Drop Event Handlers (HTML5 Drag API)
+    card.addEventListener('dragstart', (e) => {
+        draggedTaskId = task.id;
+        e.dataTransfer.setData('text/plain', task.id);
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => {
+            card.classList.add('task-card--dragging');
+        }, 0);
+    });
+
+    card.addEventListener('dragend', () => {
+        card.classList.remove('task-card--dragging');
+        draggedTaskId = null;
+        document.querySelectorAll('.kanban-column').forEach(col => {
+            col.classList.remove('kanban-column--drag-over');
+        });
+    });
+
     // Header & Priority Badge
     const headerDiv = document.createElement('div');
     headerDiv.className = 'task-card__header';
-    
+
     const badge = document.createElement('span');
     badge.className = `priority-badge priority-badge--${task.priority}`;
     badge.textContent = getPriorityLabel(task.priority);
@@ -150,6 +153,42 @@ function renderBoard() {
                 listEl.appendChild(cardEl);
             });
         }
+    });
+}
+
+// Setup Column Drag and Drop Handlers
+function setupColumnDragAndDrop() {
+    const columns = document.querySelectorAll('.kanban-column');
+
+    columns.forEach(column => {
+        column.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            column.classList.add('kanban-column--drag-over');
+        });
+
+        column.addEventListener('dragleave', (e) => {
+            // Remove highlight only if leaving column container
+            if (!column.contains(e.relatedTarget)) {
+                column.classList.remove('kanban-column--drag-over');
+            }
+        });
+
+        column.addEventListener('drop', (e) => {
+            e.preventDefault();
+            column.classList.remove('kanban-column--drag-over');
+
+            const targetStatus = column.getAttribute('data-status');
+            const taskId = e.dataTransfer.getData('text/plain') || draggedTaskId;
+
+            if (!taskId || !targetStatus) return;
+
+            const task = tasks.find(t => t.id === taskId);
+            if (task && task.status !== targetStatus) {
+                task.status = targetStatus;
+                renderBoard();
+            }
+        });
     });
 }
 
@@ -252,6 +291,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (taskForm) {
         taskForm.addEventListener('submit', handleFormSubmit);
     }
+
+    // Setup Drag and Drop
+    setupColumnDragAndDrop();
 
     // Initial render
     renderBoard();
