@@ -1,9 +1,10 @@
 /**
- * Checkpoint-1, Checkpoint-2, Checkpoint-3 & Checkpoint-4 Implementation
+ * Checkpoint-1, Checkpoint-2, Checkpoint-3, Checkpoint-4 & Checkpoint-5 Implementation
  * Checkpoint-1: Dynamic rendering of tasks from a JS array (DOM manipulation)
  * Checkpoint-2: Add / edit / delete task functionality
  * Checkpoint-3: Cross-column drag-and-drop (HTML5 Drag and Drop API)
  * Checkpoint-4: Storage with localStorage (state is saved when page is refreshed)
+ * Checkpoint-5: Search and filter by keyword/priority
  */
 
 // Storage Key
@@ -42,6 +43,7 @@ let draggedTaskId = null;
 // DOM Elements
 let taskModal, modalTitle, taskForm, taskTitleInput, taskDescInput, taskPriorityInput;
 let openModalBtn, closeModalBtn, cancelModalBtn;
+let searchInput, priorityFilter;
 
 // Helper: Format Priority Label
 function getPriorityLabel(priority) {
@@ -155,9 +157,12 @@ function createTaskCard(task) {
     return card;
 }
 
-// Render Kanban Board
+// Render Kanban Board with Search and Priority Filters
 function renderBoard() {
     const statuses = ['gozlamada', 'icra_olunur', 'tamamlandi'];
+    
+    const searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    const selectedPriority = priorityFilter ? priorityFilter.value : 'all';
 
     statuses.forEach(status => {
         const listEl = document.getElementById(`list-${status}`);
@@ -166,7 +171,23 @@ function renderBoard() {
         if (!listEl || !countEl) return;
 
         listEl.innerHTML = '';
-        const columnTasks = tasks.filter(task => task.status === status);
+
+        // Filter tasks by status, priority, and search keyword
+        const columnTasks = tasks.filter(task => {
+            if (task.status !== status) return false;
+
+            if (selectedPriority !== 'all' && task.priority !== selectedPriority) {
+                return false;
+            }
+
+            if (searchQuery !== '') {
+                const titleMatch = task.title.toLowerCase().includes(searchQuery);
+                const descMatch = (task.description || '').toLowerCase().includes(searchQuery);
+                if (!titleMatch && !descMatch) return false;
+            }
+
+            return true;
+        });
 
         countEl.textContent = columnTasks.length;
 
@@ -305,6 +326,9 @@ document.addEventListener('DOMContentLoaded', () => {
     closeModalBtn = document.getElementById('closeModalBtn');
     cancelModalBtn = document.getElementById('cancelModalBtn');
 
+    searchInput = document.getElementById('searchInput');
+    priorityFilter = document.getElementById('priorityFilter');
+
     // Bind Event Listeners
     if (openModalBtn) openModalBtn.addEventListener('click', () => openModal());
     if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
@@ -320,6 +344,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (taskForm) {
         taskForm.addEventListener('submit', handleFormSubmit);
+    }
+
+    // Search and Priority Filter Event Listeners
+    if (searchInput) {
+        searchInput.addEventListener('input', () => renderBoard());
+    }
+
+    if (priorityFilter) {
+        priorityFilter.addEventListener('change', () => renderBoard());
     }
 
     // Setup Drag and Drop
